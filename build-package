@@ -1,0 +1,39 @@
+#!/bin/bash
+
+usage_string="usage: ./$(basename "$0") [-w]
+
+Options:
+ -w		Use setup.py to build (otherwise
+ 		build directly with gcc)
+ -h, --help	Display this message and exit
+"
+
+usage() { echo -n "$usage_string" 1>&2; }
+
+declare -A use_setup_opts=(
+	[-w]=1)
+
+declare -A help_opts=(
+	[-h]=1 [--help]=1)
+
+arg=$1
+use_setup=false
+
+case $arg in
+	-w)
+		use_setup=true
+		;;	
+	-h|--help)
+		usage
+		exit 0
+		;;
+esac
+
+if [ $use_setup = true ]; then
+	python3 setup.py build
+	sudo python3 setup.py install --record files --user
+else
+	gcc -fpic --shared $(python3-config --includes) demomodule.c -o demo.so
+fi
+
+

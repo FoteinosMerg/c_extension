@@ -1,0 +1,6 @@
+*.swp
+*.so
+*.egg-info/
+build/
+dist/
+files

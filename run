@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+import demo
+
+if __name__ == "__main__":
+    demo.show('Test')

@@ -1,0 +1,25 @@
+README
+++++++
+
+Prerequisites
+=============
+
+sudo apt-get install python3-dev
+
+
+Build
+=====
+
+To build the package using the setup file type
+
+$ build-package -w
+
+To build directly with gcc type
+
+$ build-package
+
+
+Demo
+====
+
+$ ./run
