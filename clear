@@ -1,3 +1,5 @@
 #!/bin/bash
 
-sudo rm -rf build/ demo.egg-info/ dist/ demo.so files
+sudo rm -rf build/ demo.egg-info/ \
+	dist/ demo.so files \
+	fputs.so put *write.txt

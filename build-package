@@ -1,39 +1,57 @@
 #!/bin/bash
 
-usage_string="usage: ./$(basename "$0") [-w]
+usage_string="usage: ./$(basename "$0") [-s[-g]][-h]
 
 Options:
- -w		Use setup.py to build (otherwise
- 		build directly with gcc)
+ -s, --setup	Use setup script to build. Otherwise 
+ 		build directly with gcc.
+ -g, --gcc	Enforce gcc instead of clang (default if
+ 		installed) when building with setup script
  -h, --help	Display this message and exit
 "
 
 usage() { echo -n "$usage_string" 1>&2; }
 
-declare -A use_setup_opts=(
-	[-w]=1)
+if [[ $# = 1 && "${help_opts[$1]}" ]]; then
+	usage
+	exit 0
+fi
 
-declare -A help_opts=(
-	[-h]=1 [--help]=1)
-
-arg=$1
 use_setup=false
+use_gcc=false
 
-case $arg in
-	-w)
-		use_setup=true
-		;;	
-	-h|--help)
-		usage
-		exit 0
-		;;
-esac
+for arg in $@
+do
+	case $arg in 
+		-s|--setup)
+			use_setup=true
+			shift
+			;;
+		-g|--gcc)
+			use_gcc=true
+			shift
+			;;
+		*)
+			echo "Invalid option..."
+			usage 
+			exit 1
+			;;
+	esac
+done
 
 if [ $use_setup = true ]; then
 	python3 setup.py build
-	sudo python3 setup.py install --record files --user
+	
+	if [ $use_gcc = true ]; then
+		sudo CC=gcc python3 setup.py install #--record files --user
+	else
+		sudo python3 setup.py install #--record files --user
+	fi
 else
-	gcc -fpic --shared $(python3-config --includes) demomodule.c -o demo.so
+	gcc -fpic --shared $(python3-config --includes) fputsmodule.c -o fputs.so
+	#gcc -fpic --shared $(python3-config --includes) demomodule.c -o demo.so
 fi
+
+exit 0
 
 

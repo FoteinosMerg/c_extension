@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
 
-import demo
+import sys
+import fputs
 
 if __name__ == "__main__":
-    demo.show('Test')
+    try:
+        output = fputs.fputs('Test\n', 'write.txt')
+    #except ValueError:
+    except fputs.ShortStringError:
+        print('exception worked')
+    print()
+    print(fputs.CONST_1)
+    print(fputs.CONST_2)
+    print(fputs.MACRO_1)
+    print(fputs.MACRO_2)
+    print()
+    output = fputs.fputs('TestTest\n', 'write.txt')    
+    print(type(output))
+    print(output)
+    sys.exit(0)
+
