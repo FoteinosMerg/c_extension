@@ -10,11 +10,11 @@ sudo apt-get install python3-dev
 Build
 =====
 
-To build the package using the setup file type
+To build the package using the setup file:
 
-$ build-package -w
+$ build-package --setup
 
-To build directly with gcc type
+To build directly with gcc:
 
 $ build-package
 
@@ -23,3 +23,9 @@ Demo
 ====
 
 $ ./run
+
+
+Tests
+=====
+
+pytest test.py

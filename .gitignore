@@ -5,4 +5,4 @@ build/
 dist/
 files
 *write.txt
-*chache*
+__pychache__/
