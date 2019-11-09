@@ -18,5 +18,9 @@ if __name__ == "__main__":
     output = fputs.fputs('TestTest\n', 'write.txt')    
     print(type(output))
     print(output)
+    print()
+    output = fputs.system('ls -rtlha')
+    print(output)
+    print()
     sys.exit(0)
 

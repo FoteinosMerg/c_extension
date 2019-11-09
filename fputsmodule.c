@@ -2,8 +2,12 @@
 #include <Python.h>		/* Should be put before any other header! */
 
 static PyObject *ShortStringError = NULL;
+static PyObject *SysCommandError = NULL;
+static PyObject *NotCallableError = NULL;
 
-/* Function to wrap */
+static PyObject *callback = NULL;
+
+/* Functions to wrap */
 
 int perform(char *string, char *filename) 
 {
@@ -14,7 +18,11 @@ int perform(char *string, char *filename)
 }
 
 
-/* Wrapper */
+/* Wrappers */
+
+/* *self points to the module for module-level functions, whereas
+ * for methods it points to the object to which it will be attached
+ */
 
 static PyObject *method_fputs(PyObject *self, PyObject *args) {
 	/**********************************************************************
@@ -44,6 +52,45 @@ static PyObject *method_fputs(PyObject *self, PyObject *args) {
 }
 
 
+static PyObject *method_system(PyObject *self, PyObject *args) {
+	
+	const char *command;
+	int sts;
+
+	if (!PyArg_ParseTuple(args, "s", &command))
+		return NULL;
+	sts = system(command);
+	if (sts < 0) {
+		PyErr_SetString(SysCommandError, "System command failed");
+		return NULL;
+	}
+	return PyLong_FromLong(sts);
+}
+
+
+static PyObject *set_callback(PyObject *dummy, PyObject *args) {
+	
+	PyObject *result = NULL;
+	PyObject *temp;
+
+	if (PyArg_ParseTuple(args, "0:set_callback", &temp)) {
+		if (!PyCallable_Check(temp)) {
+			PyErr_SetString(NotCallableError, "Parameter must be callable");
+			return NULL;
+		}
+		Py_XINCREF(temp);	// Add reference to new callback
+		Py_XDECREF(callback);	// Dispose of previous callback
+		callback = temp;
+
+		Py_INCREF(Py_None);
+		result = Py_None;	
+	}
+
+	return result;
+}
+
+
+	
 /* Meta info:
  *
  * Structures initialized by PyModule_Create(), before
@@ -61,10 +108,13 @@ static PyMethodDef MethodTable[] = {
 		"Python interface for fputs"	/* Function docstring */
 	},
 	{
-		NULL,
-		NULL,
-		0,
-		NULL
+		"system",
+		method_system,
+		METH_VARARGS,
+		"Execute a shell command"
+	},
+	{
+		NULL, NULL, 0, NULL
 	}
 };
 
@@ -86,7 +136,8 @@ static struct PyModuleDef fputsmodule = {
 PyMODINIT_FUNC PyInit_fputs(void) {
 	/*********************************************************************
 	 * 
-	 * Module import definition (init function)
+	 * Module import definition (init function). Should be the only
+	 * non-static item defined in this file
 	 *
 	 * PyMODINIT_FUNK invoked whenever a Python program imports 
 	 * the module for the first time
@@ -101,12 +152,24 @@ PyMODINIT_FUNC PyInit_fputs(void) {
 	 *
 	 *********************************************************************/
 
-	PyObject *module = PyModule_Create(&fputsmodule);
+	PyObject *module; //=PyModule_Create(&fputsmodule);
+	module = PyModule_Create(&fputsmodule);
+	// if (module == NULL)
+	//	return NULL;
 	
 	/* Initialize exception objects (if any) and add them to module */
 	ShortStringError = PyErr_NewException("fputs.ShortStringError", NULL, NULL);
+	Py_INCREF(ShortStringError);
 	PyModule_AddObject(module, "ShortStringError", ShortStringError);
+	
+	SysCommandError = PyErr_NewException("fputs.SysCommandError", NULL, NULL);
+	Py_INCREF(SysCommandError);
+	PyModule_AddObject(module, "SysCommandError", SysCommandError);
 
+	NotCallableError= PyErr_NewException("fputs.NotCallableError", NULL, NULL);
+	Py_INCREF(NotCallableError);
+	PyModule_AddObject(module, "NotCallableError", NotCallableError);
+	
 	/* Initialize constants (if any) and add them to module */
 	PyModule_AddIntConstant(module, "CONST_1", 64);
 	PyModule_AddStringConstant(module, "CONST_2", "vivere");
@@ -117,7 +180,7 @@ PyMODINIT_FUNC PyInit_fputs(void) {
 	PyModule_AddIntMacro(module, MACRO_1);
 	PyModule_AddStringMacro(module, MACRO_2);	
 
-	return module;
+	return module;	// so that it get inserted into sys.modules by the functions caller
 }
 
 
