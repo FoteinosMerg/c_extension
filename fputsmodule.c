@@ -2,7 +2,7 @@
 #include <Python.h>		/* Should be put before any other header! */
 
 static PyObject *ShortStringError = NULL;
-static PyObject *SysCommandError = NULL;
+static PyObject *SysCommandError  = NULL;
 static PyObject *NotCallableError = NULL;
 
 static PyObject *callback = NULL;
@@ -23,6 +23,35 @@ int perform(char *string, char *filename)
 /* *self points to the module for module-level functions, whereas
  * for methods it points to the object to which it will be attached
  */
+
+static PyObject *method_empty(PyObject *self, PyObject *args)
+{
+	/* No arguments: f() */
+
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+	printf("ok\n");
+	Py_RETURN_NONE;
+}
+
+static PyObject *method_build_values(PyObject *seld, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+
+	PyObject *none    = Py_BuildValue("");
+	PyObject *integer = Py_BuildValue("i", 123);
+	PyObject *string  = Py_BuildValue("s", "oculus");
+	PyObject *bytes   = Py_BuildValue("y", "oculus");
+	PyObject *tuple   = Py_BuildValue("(isis)", 666, "oculus", 777, "vidit");
+	PyObject *list    = Py_BuildValue("[isis]", 666, "oculus", 777, "vidit");
+	PyObject *combined = Py_BuildValue("[(is)is]", 666, "oculus", 777, "vidit");
+	PyObject *dictionary = Py_BuildValue("{s:i, i:s}", "oculus", 666, 777, "vidit");
+	
+	PyObject *result = combined;
+
+	return result;
+}
 
 static PyObject *method_fputs(PyObject *self, PyObject *args) {
 	/**********************************************************************
@@ -90,6 +119,25 @@ static PyObject *set_callback(PyObject *dummy, PyObject *args) {
 }
 
 
+static PyObject *method_dv_example(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	int voltage;
+	const char *alpha = "ALPHA";
+	const char *beta = "BETA";
+	const char *gamma = "GAMMA";
+
+	static char *kwlist[] = {"alpha", "beta", "gamma", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i|sss", kwlist,
+					&voltage, &alpha, &beta, &gamma))
+		return NULL;
+
+	printf("voltage: %i\talpha: %s\tbeta: %s\tgamma: %s\n",
+			voltage, alpha, beta, gamma);	
+	Py_RETURN_NONE;
+}
+
+
 	
 /* Meta info:
  *
@@ -102,6 +150,18 @@ static PyObject *set_callback(PyObject *dummy, PyObject *args) {
 
 static PyMethodDef MethodTable[] = {
 	{
+		"empty",
+		method_empty,
+		METH_VARARGS,
+		"Exhibits no args"
+	},
+	{
+		"build_values",
+		method_build_values,
+		METH_VARARGS,
+		"Exhibits how to build values"
+	},
+	{
 		"fputs",			/* Python function name */
 		method_fputs,			/* corresponding wrapper */
 		METH_VARARGS,			/* Will do accept args of type PyObject */
@@ -112,6 +172,16 @@ static PyMethodDef MethodTable[] = {
 		method_system,
 		METH_VARARGS,
 		"Execute a shell command"
+	},
+	{
+		"dv_example",
+		(PyCFunction)(void(*)(void))method_dv_example,	/* The cast of function is necessary
+								 * since PyCFunction values only take
+								 * two PyObject* parameters while
+								 * this one takes three
+								 */
+		METH_VARARGS | METH_KEYWORDS,
+		"Exhibits kwargs usage"
 	},
 	{
 		NULL, NULL, 0, NULL

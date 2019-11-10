@@ -4,6 +4,7 @@ import sys
 import fputs
 
 if __name__ == "__main__":
+    """
     try:
         output = fputs.fputs('Test\n', 'write.txt')
     #except ValueError:
@@ -22,5 +23,11 @@ if __name__ == "__main__":
     output = fputs.system('ls -rtlha')
     print(output)
     print()
+    output = fputs.dv_example(666, 'Alpha')
+    print()
+    """
+    v = fputs.build_values();
+    print(type(v))
+    print(v)
     sys.exit(0)
 
